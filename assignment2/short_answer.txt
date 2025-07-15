@@ -5,7 +5,34 @@ Marriage Pact
 -------------
 
 Q1. It is your choice to use either an ordered or unordered set. In a few sentences, what are some of the tradeoffs between the two? Additionally, please give an example (that has not been shown in lecture) of a valid hash function that could be used to hash student names for an unordered set.
-A1. TODO
+A1. 
+有序集合（如 std::set） 和 无序集合（如 std::unordered_set） 在内部实现和性能特性上有所不同，因此各有优缺点：
+如果你需要元素保持排序且对稳定性能有要求，选择有序集合。如果你追求极致的查找、插入和删除速度，并且可以接受元素无序，那么无序集合是更好的选择，但前提是要有一个好的哈希函数。
+
+struct StudentNameHasher {
+    std::size_t operator()(const std::string& name) const noexcept {
+        std::size_t hash_val = name.length(); // 初始哈希值可以基于字符串长度
+
+        // 遍历字符串中的每个字符
+        // 使用一个简单的乘法和位移操作来组合字符的哈希值，减少冲突
+        for (char c : name) {
+            hash_val = (hash_val * 31) + static_cast<std::size_t>(c); // 31 是一个常用的素数乘子
+        }
+        return hash_val;
+    }
+};
+
+哈希函数解释：
+
+1. 初始化 hash_val 为 name.length()：将字符串的长度纳入哈希计算，可以区分长度不同的字符串。
+
+2. 循环遍历字符：对字符串中的每个字符进行处理。
+
+3. hash_val = (hash_val * 31) + static_cast<std::size_t>(c);：
+
+    hash_val * 31：将当前的哈希值乘以一个素数（这里是31）。乘法有助于分散哈希值，防止简单的累加导致大量冲突（例如 "ab" 和 "ba" 可能有相同的累加和）。素数因子通常能提供更好的哈希分布。
+
+    + static_cast<std::size_t>(c)：将当前字符的 ASCII 值加到哈希值中。
 
 Q2. Note that we are saving pointers to names in the queue, not names themselves. Why might this be desired in this problem? What happens if the original set where the names are stored goes out of scope and the pointers are referenced?
-A2. TODO
+A2. to save memory for storing so many name strings. Undefined Behavior.
